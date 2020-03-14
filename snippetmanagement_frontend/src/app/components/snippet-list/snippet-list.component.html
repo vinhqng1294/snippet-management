@@ -1,0 +1,14 @@
+<div class="list-group">
+  <a
+    *ngFor="let snippet of snippets"
+    routerLink="/snippet/{{snippet.id}}"
+    (click)="onSelect(snippet)"
+    class="border-bottom list-group-item list-group-item-action flex-column align-items-start"
+    [class.active]="snippet === selectedSnippet"
+  >
+    <div class="d-flex w-100 justify-content-between">
+      <h5 class="mb-1">{{ snippet.name }}</h5>
+    </div>
+    <small>{{ snippet.descriptionTitle }}</small>
+  </a>
+</div>
