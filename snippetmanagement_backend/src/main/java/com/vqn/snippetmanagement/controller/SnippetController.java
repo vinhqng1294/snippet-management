@@ -1,12 +1,12 @@
 package com.vqn.snippetmanagement.controller;
 
-import com.vqn.snippetmanagement.model.Snippet;
-import com.vqn.snippetmanagement.repository.SnippetRepository;
+import com.vqn.snippetmanagement.model.dto.SnippetDTO;
+import com.vqn.snippetmanagement.model.utils.ResponseDTO;
+import com.vqn.snippetmanagement.service.SnippetService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import javax.validation.Valid;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -14,64 +14,48 @@ import java.util.NoSuchElementException;
 @RequestMapping("/api/snippets")
 public class SnippetController {
     @Autowired
-    private SnippetRepository snippetRepository;
+    private SnippetService snippetService;
 
     @GetMapping("/")
-    public ResponseEntity<List<Snippet>> getSnippets() {
-        return ResponseEntity.ok((List<Snippet>) snippetRepository.findAll());
+    public Iterable<?> getSnippets() {
+        return snippetService.getSnippets();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Snippet> getSnippet(@PathVariable("id") Integer id) {
-        try {
-            return ResponseEntity.ok(snippetRepository.findById(id).get());
-        } catch (NoSuchElementException e) {
-            return ResponseEntity.notFound().build();
+    public <T> T getSnippet(@PathVariable("id") Integer id) {
+        SnippetDTO result = snippetService.getSnippetById(id);
+        if (result == null) {
+            return new ResponseDTO().notFound();
         }
+        return (T) result;
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Snippet> addSnippet(@RequestBody Snippet snippet) {
-        try {
-            return ResponseEntity.ok(snippetRepository.save(snippet));
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
+    public <T> T addSnippet(@RequestBody @Valid SnippetDTO snippetDto) {
+        SnippetDTO result = snippetService.addSnippet(snippetDto);
+        if (result == null) {
+            return new ResponseDTO().invalid();
         }
+        return (T) result;
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Snippet> updateSnippet(@PathVariable("id") Integer id, @RequestBody Snippet snippet) {
+    public <T> T updateSnippet(@PathVariable("id") Integer id, @RequestBody @Valid SnippetDTO snippetDTO) {
         try {
-            Snippet foundSnippet = snippetRepository.findById(id).get();
-            try {
-                if (snippet.getName() != null && !snippet.getName().isEmpty()) foundSnippet.setName(snippet.getName());
-                if (snippet.getDescriptionTitle() != null && !snippet.getDescriptionTitle().isEmpty())
-                    foundSnippet.setDescriptionTitle(snippet.getDescriptionTitle());
-                if (snippet.getDescriptionContent() != null && !snippet.getDescriptionContent().isEmpty())
-                    foundSnippet.setDescriptionContent(snippet.getDescriptionContent());
-                if (snippet.getContent() != null && !snippet.getContent().isEmpty())
-                    foundSnippet.setContent(snippet.getContent());
-                return ResponseEntity.ok(snippetRepository.save(foundSnippet));
-            } catch (IllegalArgumentException e) {
-                return ResponseEntity.badRequest().build();
+            SnippetDTO result = snippetService.updateSnippet(id, snippetDTO);
+            if (result == null) {
+                return new ResponseDTO().invalid();
             }
+            return (T) result;
+
         } catch (NoSuchElementException e) {
-            return ResponseEntity.notFound().build();
+            return new ResponseDTO().notFound();
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteSnippet(@PathVariable("id") Integer id) {
-        try {
-            snippetRepository.deleteById(id);
-            return ResponseEntity.ok(new Object() {
-                public boolean success = true;
-            });
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new Object() {
-                public boolean success = false;
-                public String message = "Illegal request!";
-            });
-        }
+    public boolean deleteSnippet(@PathVariable("id") Integer id) {
+        return snippetService.deleteSnippetById(id);
     }
+
 }

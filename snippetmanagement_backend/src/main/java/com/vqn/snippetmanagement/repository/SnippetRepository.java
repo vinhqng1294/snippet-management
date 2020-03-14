@@ -1,6 +1,6 @@
 package com.vqn.snippetmanagement.repository;
 
-import com.vqn.snippetmanagement.model.Snippet;
+import com.vqn.snippetmanagement.model.entity.Snippet;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
